@@ -1,16 +1,64 @@
-import React, { useState } from "react";
-import Customer_Nav from "./Customer_Nav"; // Adjust path as necessary
+import React, { useEffect, useState } from "react";
+import Customer_Nav from "./Customer_Nav";
+import axios from "axios";
 
 const RestaurantDetails = () => {
+  const [hotelData, setHotelData] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
   const [numCustomers, setNumCustomers] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
+  const [menu, setMenu] = useState({
+    starters: [],
+    mainCourse: [],
+    desserts: [],
+  });
 
-  const menu = {
-    starters: [{ id: 1, name: "Lollipop", price: 100 }],
-    mainCourse: [{ id: 2, name: "Butter Chicken", price: 250 }],
-    desserts: [{ id: 3, name: "Gulab Jamun", price: 80 }],
-  };
+  const hotelid = sessionStorage.getItem("hotelId");
+  const apiUrl = "http://localhost:3001/viewsprestaurant";
+
+  useEffect(() => {
+    // Fetch hotel details
+    axios
+      .post(apiUrl, { _id: hotelid })
+      .then((response) => {
+        setHotelData(response.data); // Assuming the response contains hotel details
+        console.log(response.data);
+      })
+      .catch((error) => console.error("Error fetching restaurant:", error));
+
+    // Fetch menu items
+    const fetchMenuItems = async () => {
+      try {
+        const [starterRes, mainRes, dessertRes] = await Promise.all([
+          axios.post("http://localhost:3001/viewstarters", { hotelid }),
+          axios.post("http://localhost:3001/viewmains", { hotelid }),
+          axios.post("http://localhost:3001/viewdesserts", { hotelid }),
+        ]);
+
+        setMenu({
+          starters: starterRes.data.map((item) => ({
+            id: item._id,
+            name: item.item,
+            price: item.price,
+          })),
+          mainCourse: mainRes.data.map((item) => ({
+            id: item._id,
+            name: item.mitem,
+            price: item.mprice,
+          })),
+          desserts: dessertRes.data.map((item) => ({
+            id: item._id,
+            name: item.ditem,
+            price: item.dprice,
+          })),
+        });
+      } catch (error) {
+        console.error("Error fetching menu items:", error);
+      }
+    };
+
+    fetchMenuItems();
+  }, []);
 
   const handleSelectionChange = (category, item, checked, count) => {
     const newItems = [...selectedItems];
@@ -48,17 +96,40 @@ const RestaurantDetails = () => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Submitting to database:", selectedItems);
-    // Add API call for food order here
-  };
-
-  const handleBookingInfoSubmit = () => {
-    console.log("Submitting booking info:", {
+  const handleSubmit = async () => {
+    const grandTotal = calculateGrandTotal();  // Calculate grand total in frontend
+  
+    // Retrieve customerId from session storage 
+    const customerId = sessionStorage.getItem("customerid");
+  
+    const orderData = {
+      hotelId: hotelid,
+      items: selectedItems,
       numberOfCustomers: numCustomers,
       timeSlot: timeSlot,
-    });
-    // Add API call for booking info here
+      grandTotal: grandTotal,  // Include the grand total in the request
+      customerId: customerId,  // Include the customerId in the order data
+    };
+  
+    try {
+      const response = await axios.post("http://localhost:3001/placeorder", orderData);
+      console.log("Order submitted successfully:", response.data);
+      alert("Order placed successfully!");
+      setSelectedItems([]);
+      setNumCustomers("");
+      setTimeSlot("");
+    } catch (error) {
+      console.error("Error submitting order:", error);
+      alert("Failed to place order. Please try again.");
+    }
+  };
+  
+
+  const calculateGrandTotal = () => {
+    return selectedItems.reduce(
+      (total, item) => total + item.price * item.count,
+      0
+    );
   };
 
   const renderTable = (category, items) => (
@@ -110,7 +181,6 @@ const RestaurantDetails = () => {
     </div>
   );
 
-  // Styles
   const sidebarStyle = {
     width: "250px",
     height: "100vh",
@@ -149,31 +219,26 @@ const RestaurantDetails = () => {
 
   return (
     <div style={{ display: "flex" }}>
-      {/* Sidebar */}
       <div style={sidebarStyle}>
         <Customer_Nav />
       </div>
 
-      {/* Main Content */}
       <div style={mainContainerStyle}>
         <div style={cardStyle}>
           <div className="card mb-3">
-            <div className="card-header">Featured</div>
+            <div className="card-header" style={{ fontSize: "24px", fontWeight: "bold" }}>
+              {hotelData.restaurantName}
+            </div>
             <div className="card-body">
-              <h5 className="card-title">Special title treatment</h5>
-              <p className="card-text">
-                With supporting text below as a natural lead-in to additional content.
-              </p>
-              <a href="#" className="btn btn-primary">Go somewhere</a>
+              <p className="card-text">Address: {hotelData.address}</p>
+              <p className="card-text">Phone No. : {hotelData.phone}</p>
             </div>
           </div>
 
-          {/* Menu Sections */}
           {renderTable("Starters", menu.starters)}
           {renderTable("Main Course", menu.mainCourse)}
           {renderTable("Desserts", menu.desserts)}
 
-          {/* Display Order Summary */}
           <textarea
             style={{ width: "100%", marginTop: "10px", height: "100px" }}
             readOnly
@@ -185,15 +250,10 @@ const RestaurantDetails = () => {
               .join("\n")}
           ></textarea>
 
-          <button
-            type="button"
-            onClick={handleSubmit}
-            style={{ marginTop: "10px", width: "100%", padding: "10px" }}
-          >
-            Place Order
-          </button>
+          <div style={{ marginTop: "10px", fontWeight: "bold" }}>
+            Grand Total: Rs.{calculateGrandTotal()}
+          </div>
 
-          {/* Extra Input Card */}
           <div style={inputGroupStyle}>
             <div className="mb-2">
               <label>Number of Customers</label>
@@ -215,14 +275,15 @@ const RestaurantDetails = () => {
                 className="form-control"
               />
             </div>
-            <button
-              type="button"
-              onClick={handleBookingInfoSubmit}
-              style={{ marginTop: "10px", width: "100%", padding: "10px" }}
-            >
-              Submit Booking Info
-            </button>
           </div>
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            style={{ marginTop: "10px", width: "100%", padding: "10px" }}
+          >
+            Place Order
+          </button>
         </div>
       </div>
     </div>

@@ -32,7 +32,9 @@ const Customer_hotellist = () => {
   };
 
   const handleCardClick = (id) => {
-    navigate(`/restaurant/${id}`); // Navigate to restaurant detail page
+    // Store the hotel ID in sessionStorage
+    sessionStorage.setItem("hotelId", id);
+    navigate("/restaurant");
   };
 
   // Styles (same as before)
