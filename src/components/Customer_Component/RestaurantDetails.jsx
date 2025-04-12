@@ -12,7 +12,7 @@ const RestaurantDetails = () => {
     desserts: [],
   });
 
-  const hotelid = sessionStorage.getItem("hotelId"); // replace with actual hotel ID from auth or props
+  const hotelid = sessionStorage.getItem("hotelId");
 
   useEffect(() => {
     const fetchMenuItems = async () => {
@@ -95,6 +95,13 @@ const RestaurantDetails = () => {
       timeSlot: timeSlot,
     });
     // Add booking submission logic here
+  };
+
+  const calculateGrandTotal = () => {
+    return selectedItems.reduce(
+      (total, item) => total + item.price * item.count,
+      0
+    );
   };
 
   const renderTable = (category, items) => (
@@ -215,6 +222,10 @@ const RestaurantDetails = () => {
               )
               .join("\n")}
           ></textarea>
+
+          <div style={{ marginTop: "10px", fontWeight: "bold" }}>
+            Grand Total: Rs.{calculateGrandTotal()}
+          </div>
 
           <button
             type="button"
