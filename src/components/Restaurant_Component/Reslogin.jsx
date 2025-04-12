@@ -18,8 +18,9 @@ const Reslogin = () => {
         });
 
         if (response.data.token) {
-            localStorage.setItem("token", response.data.token);
-            localStorage.setItem("restaurant", JSON.stringify(response.data.restaurant)); // Store user details
+            sessionStorage.setItem("restoken", response.data.token);
+            sessionStorage.setItem("restaurantid", response.data.restaurant.id); // Store user details
+            sessionStorage.setItem("restaurantname", response.data.restaurant.restaurantName); // Store user details
 
             alert("Login successful!");
             navigate("/resthome");
