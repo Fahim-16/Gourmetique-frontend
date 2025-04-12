@@ -3,6 +3,7 @@ import Customer_Nav from "./Customer_Nav";
 import axios from "axios";
 
 const RestaurantDetails = () => {
+  const [hotelData, setHotelData] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
   const [numCustomers, setNumCustomers] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
@@ -13,8 +14,19 @@ const RestaurantDetails = () => {
   });
 
   const hotelid = sessionStorage.getItem("hotelId");
+  const apiUrl = "http://localhost:3001/viewsprestaurant";
 
   useEffect(() => {
+    // Fetch hotel details
+    axios
+      .post(apiUrl, { _id: hotelid })
+      .then((response) => {
+        setHotelData(response.data); // Assuming the response contains hotel details
+        console.log(response.data);
+      })
+      .catch((error) => console.error("Error fetching restaurant:", error));
+
+    // Fetch menu items
     const fetchMenuItems = async () => {
       try {
         const [starterRes, mainRes, dessertRes] = await Promise.all([
@@ -84,18 +96,34 @@ const RestaurantDetails = () => {
     }
   };
 
-  const handleSubmit = () => {
-    console.log("Submitting to database:", selectedItems);
-    // Add order submission logic here
-  };
-
-  const handleBookingInfoSubmit = () => {
-    console.log("Booking info:", {
+  const handleSubmit = async () => {
+    const grandTotal = calculateGrandTotal();  // Calculate grand total in frontend
+  
+    // Retrieve customerId from session storage 
+    const customerId = sessionStorage.getItem("customerid");
+  
+    const orderData = {
+      hotelId: hotelid,
+      items: selectedItems,
       numberOfCustomers: numCustomers,
       timeSlot: timeSlot,
-    });
-    // Add booking submission logic here
+      grandTotal: grandTotal,  // Include the grand total in the request
+      customerId: customerId,  // Include the customerId in the order data
+    };
+  
+    try {
+      const response = await axios.post("http://localhost:3001/placeorder", orderData);
+      console.log("Order submitted successfully:", response.data);
+      alert("Order placed successfully!");
+      setSelectedItems([]);
+      setNumCustomers("");
+      setTimeSlot("");
+    } catch (error) {
+      console.error("Error submitting order:", error);
+      alert("Failed to place order. Please try again.");
+    }
   };
+  
 
   const calculateGrandTotal = () => {
     return selectedItems.reduce(
@@ -198,13 +226,12 @@ const RestaurantDetails = () => {
       <div style={mainContainerStyle}>
         <div style={cardStyle}>
           <div className="card mb-3">
-            <div className="card-header">Featured</div>
+            <div className="card-header" style={{ fontSize: "24px", fontWeight: "bold" }}>
+              {hotelData.restaurantName}
+            </div>
             <div className="card-body">
-              <h5 className="card-title">Special title treatment</h5>
-              <p className="card-text">
-                With supporting text below as a natural lead-in to additional content.
-              </p>
-              <a href="#" className="btn btn-primary">Go somewhere</a>
+              <p className="card-text">Address: {hotelData.address}</p>
+              <p className="card-text">Phone No. : {hotelData.phone}</p>
             </div>
           </div>
 
@@ -227,14 +254,6 @@ const RestaurantDetails = () => {
             Grand Total: Rs.{calculateGrandTotal()}
           </div>
 
-          <button
-            type="button"
-            onClick={handleSubmit}
-            style={{ marginTop: "10px", width: "100%", padding: "10px" }}
-          >
-            Place Order
-          </button>
-
           <div style={inputGroupStyle}>
             <div className="mb-2">
               <label>Number of Customers</label>
@@ -256,14 +275,15 @@ const RestaurantDetails = () => {
                 className="form-control"
               />
             </div>
-            <button
-              type="button"
-              onClick={handleBookingInfoSubmit}
-              style={{ marginTop: "10px", width: "100%", padding: "10px" }}
-            >
-              Submit Booking Info
-            </button>
           </div>
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            style={{ marginTop: "10px", width: "100%", padding: "10px" }}
+          >
+            Place Order
+          </button>
         </div>
       </div>
     </div>
