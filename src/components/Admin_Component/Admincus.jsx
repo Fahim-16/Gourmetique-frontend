@@ -17,7 +17,7 @@ const Admincus = () => {
       .catch((error) => {
         console.error(error);
       });
-  }, []); // added empty dependency array to prevent infinite re-fetching
+  }, []); 
 
   const handleDelete = async (_id) => {
     try {
