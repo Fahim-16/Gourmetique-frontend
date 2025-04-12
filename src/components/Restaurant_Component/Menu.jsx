@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Restaurant_Nav from './Restaurant_Nav';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Menu = () => {
   const [starters, setStarters] = useState([]);
@@ -18,31 +20,79 @@ const Menu = () => {
   const [dsItem, setDsItem] = useState('');
   const [dsPrice, setDsPrice] = useState('');
 
-  const handleAddStarter = () => {
+  const hotelid = sessionStorage.getItem('restaurantid');
+  const navigate = useNavigate(); // Use useNavigate
+
+  useEffect(() => {
+    if (!hotelid) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
+  }, [hotelid, navigate]);
+
+  const handleAddStarter = async () => {
     if (!si || !item || !price) {
       alert('Please fill all starter fields');
       return;
     }
-    setStarters([...starters, { si, item, price }]);
-    setSi(''); setItem(''); setPrice('');
+
+    try {
+      const res = await axios.post('http://localhost:3001/add-starter', {
+        hotelid,
+        si,
+        item,
+        price
+      });
+      alert(res.data.message);
+      setStarters([...starters, { si, item, price }]);
+      setSi(''); setItem(''); setPrice('');
+    } catch (err) {
+      console.error(err);
+      alert('Error adding starter');
+    }
   };
 
-  const handleAddMainCourse = () => {
+  const handleAddMainCourse = async () => {
     if (!mcSi || !mcItem || !mcPrice) {
       alert('Please fill all main course fields');
       return;
     }
-    setMainCourses([...mainCourses, { si: mcSi, item: mcItem, price: mcPrice }]);
-    setMcSi(''); setMcItem(''); setMcPrice('');
+
+    try {
+      const res = await axios.post('http://localhost:3001/add-mains', {
+        hotelid,
+        msi: mcSi,
+        mitem: mcItem,
+        mprice: mcPrice
+      });
+      alert(res.data.message);
+      setMainCourses([...mainCourses, { si: mcSi, item: mcItem, price: mcPrice }]);
+      setMcSi(''); setMcItem(''); setMcPrice('');
+    } catch (err) {
+      console.error(err);
+      alert('Error adding main course');
+    }
   };
 
-  const handleAddDessert = () => {
+  const handleAddDessert = async () => {
     if (!dsSi || !dsItem || !dsPrice) {
       alert('Please fill all dessert fields');
       return;
     }
-    setDesserts([...desserts, { si: dsSi, item: dsItem, price: dsPrice }]);
-    setDsSi(''); setDsItem(''); setDsPrice('');
+
+    try {
+      const res = await axios.post('http://localhost:3001/add-dessert', {
+        hotelid,
+        dsi: dsSi,
+        ditem: dsItem,
+        dprice: dsPrice
+      });
+      alert(res.data.message);
+      setDesserts([...desserts, { si: dsSi, item: dsItem, price: dsPrice }]);
+      setDsSi(''); setDsItem(''); setDsPrice('');
+    } catch (err) {
+      console.error(err);
+      alert('Error adding dessert');
+    }
   };
 
   const sidebarStyle = {
@@ -77,26 +127,19 @@ const Menu = () => {
 
   return (
     <div style={{ display: 'flex' }}>
-      {/* Sidebar */}
       <div style={sidebarStyle}>
         <Restaurant_Nav />
       </div>
 
-      {/* Main Content */}
       <div style={containerStyle}>
         <div style={cardStyle}>
           <h1>MENU</h1>
 
-          {/* STARTERS */}
           <div style={sectionStyle}>
             <h2>STARTERS</h2>
             <table border="1" cellPadding="10" style={{ width: '100%' }}>
               <thead>
-                <tr>
-                  <th>SI</th>
-                  <th>ITEM</th>
-                  <th>PRICE (Rs)</th>
-                </tr>
+                <tr><th>SI</th><th>ITEM</th><th>PRICE (Rs)</th></tr>
               </thead>
               <tbody>
                 <tr>
@@ -116,11 +159,7 @@ const Menu = () => {
                   </thead>
                   <tbody>
                     {starters.map((s, i) => (
-                      <tr key={i}>
-                        <td>{s.si}</td>
-                        <td>{s.item}</td>
-                        <td>{s.price}</td>
-                      </tr>
+                      <tr key={i}><td>{s.si}</td><td>{s.item}</td><td>{s.price}</td></tr>
                     ))}
                   </tbody>
                 </table>
@@ -128,16 +167,11 @@ const Menu = () => {
             )}
           </div>
 
-          {/* MAIN COURSE */}
           <div style={sectionStyle}>
             <h2>MAIN COURSE</h2>
             <table border="1" cellPadding="10" style={{ width: '100%' }}>
               <thead>
-                <tr>
-                  <th>SI</th>
-                  <th>ITEM</th>
-                  <th>PRICE (Rs)</th>
-                </tr>
+                <tr><th>SI</th><th>ITEM</th><th>PRICE (Rs)</th></tr>
               </thead>
               <tbody>
                 <tr>
@@ -157,11 +191,7 @@ const Menu = () => {
                   </thead>
                   <tbody>
                     {mainCourses.map((m, i) => (
-                      <tr key={i}>
-                        <td>{m.si}</td>
-                        <td>{m.item}</td>
-                        <td>{m.price}</td>
-                      </tr>
+                      <tr key={i}><td>{m.si}</td><td>{m.item}</td><td>{m.price}</td></tr>
                     ))}
                   </tbody>
                 </table>
@@ -169,16 +199,11 @@ const Menu = () => {
             )}
           </div>
 
-          {/* DESSERTS */}
           <div style={sectionStyle}>
             <h2>DESSERTS</h2>
             <table border="1" cellPadding="10" style={{ width: '100%' }}>
               <thead>
-                <tr>
-                  <th>SI</th>
-                  <th>ITEM</th>
-                  <th>PRICE (Rs)</th>
-                </tr>
+                <tr><th>SI</th><th>ITEM</th><th>PRICE (Rs)</th></tr>
               </thead>
               <tbody>
                 <tr>
@@ -198,11 +223,7 @@ const Menu = () => {
                   </thead>
                   <tbody>
                     {desserts.map((d, i) => (
-                      <tr key={i}>
-                        <td>{d.si}</td>
-                        <td>{d.item}</td>
-                        <td>{d.price}</td>
-                      </tr>
+                      <tr key={i}><td>{d.si}</td><td>{d.item}</td><td>{d.price}</td></tr>
                     ))}
                   </tbody>
                 </table>

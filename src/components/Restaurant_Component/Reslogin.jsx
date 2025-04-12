@@ -12,23 +12,26 @@ const Reslogin = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-        const response = await axios.post("http://localhost:3001/login", {
-            username,
-            password,
-        });
+      const response = await axios.post("http://localhost:3001/login", {
+        username,
+        password,
+      });
 
-        if (response.data.token) {
-            sessionStorage.setItem("restoken", response.data.token);
-            sessionStorage.setItem("restaurantid", response.data.restaurant.id); // Store user details
-            sessionStorage.setItem("restaurantname", response.data.restaurant.restaurantName); // Store user details
-
-            alert("Login successful!");
-            navigate("/resthome");
-        }
+      if (response.data.token) {
+        sessionStorage.setItem("restoken", response.data.token);
+        sessionStorage.setItem("restaurantid", response.data.restaurant.id); // Store user details
+        sessionStorage.setItem("restaurantname", response.data.restaurant.restaurantName); // Store user details
+        setError('');
+        navigate("/menu");
+      }
     } catch (err) {
-        setError(err.response?.data?.error || "Login failed");
+      const errorMessage =
+        err?.response?.data?.message ||
+        'Login failed. Invalid Credentials. Please try again.';
+      setError(errorMessage);
+      console.log('Login error:', err);
     }
-};
+  };
 
 
   return (
