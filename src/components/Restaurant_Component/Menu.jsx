@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Restaurant_Nav from './Restaurant_Nav';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const Menu = () => {
   const [starters, setStarters] = useState([]);
@@ -20,7 +21,13 @@ const Menu = () => {
   const [dsPrice, setDsPrice] = useState('');
 
   const hotelid = sessionStorage.getItem('restaurantid');
-  console.log(sessionStorage.getItem('restaurantid'));
+  const navigate = useNavigate(); // Use useNavigate
+
+  useEffect(() => {
+    if (!hotelid) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
+  }, [hotelid, navigate]);
 
   const handleAddStarter = async () => {
     if (!si || !item || !price) {

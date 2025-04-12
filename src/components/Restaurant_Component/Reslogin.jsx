@@ -22,7 +22,7 @@ const Reslogin = () => {
         sessionStorage.setItem("restaurantid", response.data.restaurant.id); // Store user details
         sessionStorage.setItem("restaurantname", response.data.restaurant.restaurantName); // Store user details
         setError('');
-        navigate("/resthome");
+        navigate("/menu");
       }
     } catch (err) {
       const errorMessage =
