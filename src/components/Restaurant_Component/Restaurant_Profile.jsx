@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Restaurant_Nav from "./Restaurant_Nav";
+import { useNavigate } from "react-router-dom";
 
 const Restaurant_Profile = () => {
   const [menu, setMenu] = useState({
@@ -9,6 +10,15 @@ const Restaurant_Profile = () => {
   });
 
   const [selectedItems, setSelectedItems] = useState([]);
+
+  const hotelId = sessionStorage.getItem("restaurantid"); // Replace with actual hotelId
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!hotelId) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
+  }, [hotelId, navigate]);
 
   const handleCountChange = (category, itemId, count) => {
     const updatedMenu = { ...menu };
@@ -97,9 +107,9 @@ const Restaurant_Profile = () => {
   // Styles
   const sidebarStyle = {
     width: "250px",
+    display: "flex",
+    flexDirection: "column",
     height: "100vh",
-    borderRight: "1px solid #ccc",
-    padding: "10px",
   };
 
   const containerStyle = {
