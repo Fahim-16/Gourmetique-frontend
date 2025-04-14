@@ -37,7 +37,7 @@ const Restaurant_Nav = () => {
           <Link className="nav-link text-white" to="/resprofile">Profile</Link>
         </li>
         <li className="nav-item">
-          <button className="nav-link text-white btn btn-link p-0" onClick={handleLogout}>LogOut</button>
+          <Link className="nav-link text-white btn btn-link p-0" onClick={handleLogout}>LogOut</Link>
         </li>
       </ul>
     </nav>

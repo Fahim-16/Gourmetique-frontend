@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Customer_Nav from './Customer_Nav';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Customer_Review = () => {
   const [review, setReview] = useState([]);
@@ -13,6 +14,8 @@ const Customer_Review = () => {
   });
 
   const [file, setFile] = useState(null);
+  const navigate = useNavigate(); // For navigation
+  const customerId = sessionStorage.getItem("customerid");
 
   const apiLinkdisplay = 'http://localhost:3001/viewreview';
   const apiLink = 'http://localhost:3001/cusreview';
@@ -20,6 +23,9 @@ const Customer_Review = () => {
   const apiUrlcus = 'http://localhost:3001/viewrestaurant';
 
   useEffect(() => {
+    if (!customerId) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
     axios.get(apiLinkdisplay)
       .then((response) => {
         setReview(response.data);
@@ -38,7 +44,7 @@ const Customer_Review = () => {
         setHotelData(response.data);
       })
       .catch((error) => console.error("Error fetching restaurants:", error));
-  }, []);
+  }, [customerId, navigate]);
 
   const inputHandler = (event) => {
     setInputField({ ...inputField, [event.target.name]: event.target.value });

@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Restaurant_Nav from './Restaurant_Nav';
+import { useNavigate } from 'react-router-dom';
 
 const Restads = () => {
   const [review, setReview] = useState([]);
   const [inputField, setInputField] = useState({ title: '', image: '' });
+
+  const hotelId = sessionStorage.getItem("restaurantid"); // Replace with actual hotelId
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!hotelId) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
+  }, [hotelId, navigate]);
 
   const fileHandler = (e) => {
     const file = e.target.files[0];
@@ -116,7 +126,7 @@ const Restads = () => {
                   <div className="card-body">
                     <h4 className="card-title">Customer Review {index + 1}</h4>
                     <p className="card-text">
-                      "This is an example of a detailed customer review. It includes more text 
+                      "This is an example of a detailed customer review. It includes more text
                       and allows users to share their thoughts about a restaurant."
                     </p>
                     <p className="card-text"><strong>Rating:</strong> ⭐⭐⭐⭐☆</p>
