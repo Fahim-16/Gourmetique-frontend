@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Customer_Nav from "./Customer_Nav";
 import axios from "axios";
 
 const RestaurantDetails = () => {
   const [hotelData, setHotelData] = useState({});
   const [selectedItems, setSelectedItems] = useState([]);
+  const [itemStates, setItemStates] = useState({});
   const [numCustomers, setNumCustomers] = useState("");
   const [timeSlot, setTimeSlot] = useState("");
   const [menu, setMenu] = useState({
@@ -12,21 +13,18 @@ const RestaurantDetails = () => {
     mainCourse: [],
     desserts: [],
   });
+  const [showInvoice, setShowInvoice] = useState(false);
+  const invoiceRef = useRef();
 
   const hotelid = sessionStorage.getItem("hotelId");
   const apiUrl = "http://localhost:3001/viewsprestaurant";
 
   useEffect(() => {
-    // Fetch hotel details
     axios
       .post(apiUrl, { _id: hotelid })
-      .then((response) => {
-        setHotelData(response.data); // Assuming the response contains hotel details
-        console.log(response.data);
-      })
+      .then((response) => setHotelData(response.data))
       .catch((error) => console.error("Error fetching restaurant:", error));
 
-    // Fetch menu items
     const fetchMenuItems = async () => {
       try {
         const [starterRes, mainRes, dessertRes] = await Promise.all([
@@ -61,6 +59,12 @@ const RestaurantDetails = () => {
   }, []);
 
   const handleSelectionChange = (category, item, checked, count) => {
+    const id = `${category}_${item.id}`;
+    setItemStates((prev) => ({
+      ...prev,
+      [id]: { checked, count: count || 1 },
+    }));
+
     const newItems = [...selectedItems];
     const index = newItems.findIndex(
       (i) => i.id === item.id && i.category === category
@@ -74,7 +78,6 @@ const RestaurantDetails = () => {
         price: item.price,
         count: count || 1,
       };
-
       if (index === -1) newItems.push(newItem);
       else newItems[index].count = count || 1;
     } else {
@@ -85,51 +88,108 @@ const RestaurantDetails = () => {
   };
 
   const handleCountChange = (category, item, count) => {
+    const id = `${category}_${item.id}`;
+    setItemStates((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], count },
+    }));
+
     const newItems = [...selectedItems];
     const index = newItems.findIndex(
       (i) => i.id === item.id && i.category === category
     );
-
     if (index !== -1) {
       newItems[index].count = count;
       setSelectedItems(newItems);
     }
   };
 
-  const handleSubmit = async () => {
-    const grandTotal = calculateGrandTotal();  // Calculate grand total in frontend
-  
-    // Retrieve customerId from session storage 
-    const customerId = sessionStorage.getItem("customerid");
-  
-    const orderData = {
-      hotelId: hotelid,
-      items: selectedItems,
-      numberOfCustomers: numCustomers,
-      timeSlot: timeSlot,
-      grandTotal: grandTotal,  // Include the grand total in the request
-      customerId: customerId,  // Include the customerId in the order data
-    };
-  
-    try {
-      const response = await axios.post("http://localhost:3001/placeorder", orderData);
-      console.log("Order submitted successfully:", response.data);
-      alert("Order placed successfully!");
-      setSelectedItems([]);
-      setNumCustomers("");
-      setTimeSlot("");
-    } catch (error) {
-      console.error("Error submitting order:", error);
-      alert("Failed to place order. Please try again.");
-    }
-  };
-  
-
   const calculateGrandTotal = () => {
     return selectedItems.reduce(
       (total, item) => total + item.price * item.count,
       0
     );
+  };
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleSubmit = () => {
+    if (selectedItems.length === 0) {
+      alert("Please select at least one item to place the order.");
+      return;
+    }
+
+    if (!numCustomers || !timeSlot) {
+      alert("Please fill in the number of customers and time slot.");
+      return;
+    }
+
+    setShowInvoice(true);
+  };
+
+  const proceedToPayment = async () => {
+    setShowInvoice(false);
+
+    const res = await loadRazorpayScript();
+    if (!res) {
+      alert("Failed to load Razorpay SDK.");
+      return;
+    }
+
+    const grandTotal = calculateGrandTotal();
+    const customerId = sessionStorage.getItem("customerid");
+
+    const options = {
+      key: "rzp_test_03rYoJSFvAmjfB",
+      amount: grandTotal * 100,
+      currency: "INR",
+      name: "Gourmetique",
+      description: "Food Order Payment",
+      handler: async function (response) {
+        const paymentId = response.razorpay_payment_id;
+
+        const orderData = {
+          hotelId: hotelid,
+          items: selectedItems,
+          numberOfCustomers: numCustomers,
+          timeSlot: timeSlot,
+          grandTotal: grandTotal,
+          customerId: customerId,
+          paymentId: paymentId,
+        };
+
+        try {
+          await axios.post("http://localhost:3001/placeorder", orderData);
+          alert("Order placed successfully!");
+          setSelectedItems([]);
+          setItemStates({});
+          setNumCustomers("");
+          setTimeSlot("");
+        } catch (err) {
+          console.error("Error placing order:", err);
+          alert("Failed to place order after payment.");
+        }
+      },
+      prefill: {
+        name: "Customer",
+        email: "customer@example.com",
+        contact: "9999999999",
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
   };
 
   const renderTable = (category, items) => (
@@ -146,40 +206,60 @@ const RestaurantDetails = () => {
           </tr>
         </thead>
         <tbody>
-          {items.map((item, idx) => (
-            <tr key={item.id}>
-              <td>{idx + 1}</td>
-              <td>{item.name}</td>
-              <td>Rs.{item.price}</td>
-              <td>
-                <input
-                  type="number"
-                  defaultValue={1}
-                  min={1}
-                  onChange={(e) =>
-                    handleCountChange(category, item, parseInt(e.target.value))
-                  }
-                />
-              </td>
-              <td>
-                <input
-                  type="checkbox"
-                  onChange={(e) =>
-                    handleSelectionChange(
-                      category,
-                      item,
-                      e.target.checked,
-                      1
-                    )
-                  }
-                />
-              </td>
-            </tr>
-          ))}
+          {items.map((item, idx) => {
+            const id = `${category}_${item.id}`;
+            const state = itemStates[id] || { checked: false, count: 1 };
+
+            return (
+              <tr key={item.id}>
+                <td>{idx + 1}</td>
+                <td>{item.name}</td>
+                <td>Rs.{item.price}</td>
+                <td>
+                  <input
+                    type="number"
+                    min={1}
+                    value={state.count}
+                    onChange={(e) =>
+                      handleCountChange(
+                        category,
+                        item,
+                        parseInt(e.target.value)
+                      )
+                    }
+                  />
+                </td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={state.checked}
+                    onChange={(e) =>
+                      handleSelectionChange(
+                        category,
+                        item,
+                        e.target.checked,
+                        state.count
+                      )
+                    }
+                  />
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
   );
+
+  const handlePrint = () => {
+    const printContents = invoiceRef.current.innerHTML;
+    const win = window.open("", "", "height=600,width=800");
+    win.document.write("<html><head><title>Invoice</title></head><body>");
+    win.document.write(printContents);
+    win.document.write("</body></html>");
+    win.document.close();
+    win.print();
+  };
 
   const sidebarStyle = {
     width: "250px",
@@ -226,7 +306,10 @@ const RestaurantDetails = () => {
       <div style={mainContainerStyle}>
         <div style={cardStyle}>
           <div className="card mb-3">
-            <div className="card-header" style={{ fontSize: "24px", fontWeight: "bold" }}>
+            <div
+              className="card-header"
+              style={{ fontSize: "24px", fontWeight: "bold" }}
+            >
               {hotelData.restaurantName}
             </div>
             <div className="card-body">
@@ -286,6 +369,60 @@ const RestaurantDetails = () => {
           </button>
         </div>
       </div>
+
+      {/* INVOICE POPUP */}
+      {showInvoice && (
+        <div
+          style={{
+            position: "fixed",
+            top: "0",
+            left: "0",
+            width: "100vw",
+            height: "100vh",
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1000,
+          }}
+        >
+          <div
+            style={{
+              width: "400px",
+              background: "#fff",
+              padding: "20px",
+              borderRadius: "10px",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.3)",
+            }}
+            ref={invoiceRef}
+          >
+            <h2 style={{ textAlign: "center", color: "#3399cc" }}>
+              Gourmetique
+            </h2>
+            <h3 style={{ textAlign: "center" }}>Invoice</h3>
+            <hr />
+            <ul>
+              {selectedItems.map((item, index) => (
+                <li key={index}>
+                  {item.name} (x{item.count}) — Rs.{item.price * item.count}
+                </li>
+              ))}
+            </ul>
+            <p>
+              <strong>Number of Customers:</strong> {numCustomers}
+            </p>
+            <p>
+              <strong>Time Slot:</strong> {timeSlot}
+            </p>
+            <h4>Total: Rs.{calculateGrandTotal()}</h4>
+            <div style={{ marginTop: "20px", display: "flex", justifyContent: "center", gap: "10px" }}>
+              <button onClick={handlePrint}>Print</button>
+              <button onClick={proceedToPayment}>Proceed to Pay</button>
+              <button onClick={() => setShowInvoice(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
