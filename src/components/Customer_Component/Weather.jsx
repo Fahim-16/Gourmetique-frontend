@@ -1,11 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Customer_Nav from "./Customer_Nav";
+import { useNavigate } from "react-router-dom";
 
 const Weather = () => {
   const [city, setCity] = useState("");  // State for city input
   const [weather, setWeather] = useState(null); // State for weather data
   const [error, setError] = useState(""); // State for error messages
+  const navigate = useNavigate(); // For navigation
+  const customerId = sessionStorage.getItem("customerid");
+
+  useEffect(() => {
+    if (!customerId) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
+  }, [customerId, navigate]);
 
   const fetchWeather = async () => {
     if (!city) {

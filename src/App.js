@@ -11,7 +11,6 @@ import Reslogin from './components/Restaurant_Component/Reslogin';
 import Resregistration from './components/Restaurant_Component/Resregistration';
 import Adlogin from './components/Admin_Component/Adlogin';
 import Customer_Nav from './components/Customer_Component/Customer_Nav';
-import Customer_Home from './components/Customer_Component/Customer_Home';
 import Customer_Review from './components/Customer_Component/Customer_Review';
 import Weather from './components/Customer_Component/Weather';
 import Customer_hotellist from './components/Customer_Component/Customer_hotellist';
@@ -40,7 +39,6 @@ function App() {
         <Route path='/restaurantregistration' element={<Resregistration/>}/>
         <Route path='/adminlogin' element={<Adlogin/>}/>
         <Route path='/cusnav' element={<Customer_Nav/>}/>
-        <Route path='/restaurantlist' element={<Customer_Home/>}/>
         <Route path='/customerreview' element={<Customer_Review/>}/>
         <Route path='/weather' element={<Weather/>}/>
         <Route path='/hotellist' element={<Customer_hotellist/>}/>

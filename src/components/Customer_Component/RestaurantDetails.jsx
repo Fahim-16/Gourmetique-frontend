@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Customer_Nav from "./Customer_Nav";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const RestaurantDetails = () => {
   const [hotelData, setHotelData] = useState({});
@@ -15,11 +16,16 @@ const RestaurantDetails = () => {
   });
   const [showInvoice, setShowInvoice] = useState(false);
   const invoiceRef = useRef();
+  const navigate = useNavigate(); // For navigation
+  const customerId = sessionStorage.getItem("customerid");
 
   const hotelid = sessionStorage.getItem("hotelId");
   const apiUrl = "http://localhost:3001/viewsprestaurant";
 
   useEffect(() => {
+    if (!customerId) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
     axios
       .post(apiUrl, { _id: hotelid })
       .then((response) => setHotelData(response.data))
@@ -56,7 +62,7 @@ const RestaurantDetails = () => {
     };
 
     fetchMenuItems();
-  }, []);
+  }, [customerId, navigate]);
 
   const handleSelectionChange = (category, item, checked, count) => {
     const id = `${category}_${item.id}`;
@@ -267,9 +273,9 @@ const RestaurantDetails = () => {
 
   const sidebarStyle = {
     width: "250px",
+    display: "flex",
+    flexDirection: "column",
     height: "100vh",
-    borderRight: "1px solid #ccc",
-    padding: "10px",
   };
 
   const mainContainerStyle = {

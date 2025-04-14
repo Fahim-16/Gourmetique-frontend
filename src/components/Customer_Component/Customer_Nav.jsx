@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/dist/js/bootstrap.min.js';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Customer_Nav = () => {
   const [customerName, setCustomerName] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const name = sessionStorage.getItem('customername');
@@ -12,6 +13,11 @@ const Customer_Nav = () => {
       setCustomerName(name);
     }
   }, []);
+
+  const handleLogout = () => {
+    sessionStorage.clear(); // Or remove specific items like: sessionStorage.removeItem('restaurantname');
+    navigate('/'); // Redirect to login/home page
+  };
 
   return (
     <nav className="d-flex flex-column bg-dark text-white vh-100 p-3" style={{ width: '250px', position: 'fixed' }}>
@@ -33,7 +39,7 @@ const Customer_Nav = () => {
           <Link className="nav-link text-white" to="/profile">Profile</Link>
         </li>
         <li className="nav-item">
-          <Link className="nav-link text-white" to="/">LogOut</Link>
+          <Link className="nav-link text-white" onClick={handleLogout}>LogOut</Link>
         </li>
       </ul>
     </nav>

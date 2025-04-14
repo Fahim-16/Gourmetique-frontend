@@ -10,8 +10,12 @@ const Customer_hotellist = () => {
 
   const apiUrl = "http://localhost:3001/viewrestaurant";
   const navigate = useNavigate(); // For navigation
+  const customerId = sessionStorage.getItem("customerid");
 
   useEffect(() => {
+    if (!customerId) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
     axios
       .get(apiUrl)
       .then((response) => {
@@ -19,7 +23,7 @@ const Customer_hotellist = () => {
         setFilteredHotels(response.data);
       })
       .catch((error) => console.error("Error fetching restaurants:", error));
-  }, []);
+  }, [customerId, navigate]);
 
   const handleSearchChange = (event) => {
     const query = event.target.value.toLowerCase();
