@@ -1,7 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Customer_Nav from "./Customer_Nav";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
+  const navigate = useNavigate(); // For navigation
+  const customerId = sessionStorage.getItem("customerid");
+
+  useEffect(() => {
+    if (!customerId) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
+  }, [customerId, navigate]);
   // Dummy order data for demonstration
   const orders = [
     { id: 1, name: "John Doe", date: "2025-04-06", total: "Rs.500" },
