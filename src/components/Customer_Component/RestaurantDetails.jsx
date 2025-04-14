@@ -147,6 +147,9 @@ const RestaurantDetails = () => {
     const grandTotal = calculateGrandTotal();
     const customerId = sessionStorage.getItem("customerid");
 
+    // Get the current date in YYYY-MM-DD format
+    const currentDate = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+
     const options = {
       key: "rzp_test_03rYoJSFvAmjfB",
       amount: grandTotal * 100,
@@ -164,6 +167,7 @@ const RestaurantDetails = () => {
           grandTotal: grandTotal,
           customerId: customerId,
           paymentId: paymentId,
+          orderDate: currentDate, // Pass the current date to the backend
         };
 
         try {
