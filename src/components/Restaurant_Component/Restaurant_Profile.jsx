@@ -1,98 +1,149 @@
 import React, { useEffect, useState } from "react";
 import Restaurant_Nav from "./Restaurant_Nav";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Restaurant_Profile = () => {
   const [menu, setMenu] = useState({
-    starters: [{ id: 1, name: "Lollipop", price: 100, count: 1 }],
-    mainCourse: [{ id: 2, name: "Butter Chicken", price: 250, count: 1 }],
-    desserts: [{ id: 3, name: "Gulab Jamun", price: 80, count: 1 }],
+    starters: [],
+    mainCourse: [],
+    desserts: [],
   });
 
-  const [selectedItems, setSelectedItems] = useState([]);
-
-  const hotelId = sessionStorage.getItem("restaurantid"); // Replace with actual hotelId
+  const hotelId = sessionStorage.getItem("restaurantid");
   const navigate = useNavigate();
 
   useEffect(() => {
     if (!hotelId) {
-      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+      navigate("/");
+    } else {
+      fetchMenuItems();
     }
   }, [hotelId, navigate]);
 
-  const handleCountChange = (category, itemId, count) => {
-    const updatedMenu = { ...menu };
-    updatedMenu[category] = updatedMenu[category].map((item) =>
-      item.id === itemId ? { ...item, count } : item
-    );
-    setMenu(updatedMenu);
-  };
+  const fetchMenuItems = async () => {
+    try {
+      const [starterRes, mainRes, dessertRes] = await Promise.all([
+        axios.post("http://localhost:3001/viewstarters", { hotelid: hotelId }),
+        axios.post("http://localhost:3001/viewmains", { hotelid: hotelId }),
+        axios.post("http://localhost:3001/viewdesserts", { hotelid: hotelId }),
+      ]);
 
-  const handleDelete = (category, itemId) => {
-    const updatedMenu = { ...menu };
-    updatedMenu[category] = updatedMenu[category].filter((item) => item.id !== itemId);
-    setMenu(updatedMenu);
+      const starters = starterRes.data.map((item) => ({
+        id: item._id,
+        name: item.item,
+        price: item.price,
+      }));
 
-    // Remove from selectedItems if present
-    setSelectedItems((prev) => prev.filter((i) => !(i.id === itemId && i.category === category)));
+      const mainCourse = mainRes.data.map((item) => ({
+        id: item._id,
+        name: item.mitem,
+        price: item.mprice,
+      }));
+
+      const desserts = dessertRes.data.map((item) => ({
+        id: item._id,
+        name: item.ditem,
+        price: item.dprice,
+      }));
+
+      setMenu({ starters, mainCourse, desserts });
+    } catch (error) {
+      console.error("Error fetching menu items:", error);
+      toast.error("Failed to load menu items.");
+    }
   };
 
   const handleUpdate = (category, itemId) => {
     const item = menu[category].find((i) => i.id === itemId);
-    const updatedList = [...selectedItems];
-    const index = updatedList.findIndex((i) => i.id === itemId && i.category === category);
+    toast.success(`Updated: ${item.name}`);
+    // Here you can call API to persist changes if needed
+  };
 
-    const newItem = {
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      count: item.count,
-      category,
-    };
+  const handleDelete = (category, itemId) => {
+    const itemToDelete = menu[category].find((item) => item.id === itemId);
+    const confirmDelete = window.confirm(`Delete ${itemToDelete.name}?`);
 
-    if (index !== -1) {
-      updatedList[index] = newItem;
-    } else {
-      updatedList.push(newItem);
-    }
+    if (!confirmDelete) return;
 
-    setSelectedItems(updatedList);
+    const updatedMenu = { ...menu };
+    updatedMenu[category] = updatedMenu[category].filter(
+      (item) => item.id !== itemId
+    );
+    setMenu(updatedMenu);
+
+    toast.warn(`Deleted: ${itemToDelete.name}`);
   };
 
   const renderTable = (category, items) => (
-    <div key={category}>
-      <h2>{category}</h2>
-      <table border={2} cellPadding={10} style={{ width: "100%", marginBottom: "20px" }}>
-        <thead>
+    <div>
+      <h2 style={{ textTransform: "capitalize", marginTop: "20px" }}>
+        {category}
+      </h2>
+      <table border={2} cellPadding={10} style={{ width: "100%", marginBottom: "30px" }}>
+        <thead style={{ backgroundColor: "#f0f0f0" }}>
           <tr>
             <th>SI</th>
             <th>ITEM</th>
             <th>PRICE</th>
-            <th>COUNT</th>
-            <th>ACTIONS</th>
+            <th>UPDATE</th>
+            <th>DELETE</th>
           </tr>
         </thead>
         <tbody>
           {items.map((item, idx) => (
             <tr key={item.id}>
               <td>{idx + 1}</td>
-              <td>{item.name}</td>
-              <td>Rs.{item.price}</td>
               <td>
                 <input
-                  type="number"
-                  min={1}
-                  value={item.count}
-                  onChange={(e) =>
-                    handleCountChange(category, item.id, parseInt(e.target.value))
-                  }
+                  type="text"
+                  value={item.name}
+                  onChange={(e) => {
+                    const updatedMenu = { ...menu };
+                    updatedMenu[category][idx].name = e.target.value;
+                    setMenu(updatedMenu);
+                  }}
                 />
               </td>
               <td>
-                <button onClick={() => handleUpdate(category, item.id)}>Update</button>
+                <input
+                  type="number"
+                  value={item.price}
+                  onChange={(e) => {
+                    const updatedMenu = { ...menu };
+                    updatedMenu[category][idx].price = e.target.value;
+                    setMenu(updatedMenu);
+                  }}
+                />
+              </td>
+              <td>
+                <button
+                  onClick={() => handleUpdate(category, item.id)}
+                  style={{
+                    padding: "5px 10px",
+                    backgroundColor: "#4CAF50",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Update
+                </button>
+              </td>
+              <td>
                 <button
                   onClick={() => handleDelete(category, item.id)}
-                  style={{ marginLeft: "10px", backgroundColor: "red", color: "white" }}
+                  style={{
+                    padding: "5px 10px",
+                    backgroundColor: "#f44336",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
                 >
                   Delete
                 </button>
@@ -104,7 +155,6 @@ const Restaurant_Profile = () => {
     </div>
   );
 
-  // Styles
   const sidebarStyle = {
     width: "250px",
     display: "flex",
@@ -135,12 +185,10 @@ const Restaurant_Profile = () => {
 
   return (
     <div style={{ display: "flex" }}>
-      {/* Sidebar */}
       <div style={sidebarStyle}>
         <Restaurant_Nav />
       </div>
 
-      {/* Main Content */}
       <div style={containerStyle}>
         <div style={cardStyle}>
           <div className="card mb-3">
@@ -152,12 +200,13 @@ const Restaurant_Profile = () => {
             </div>
           </div>
 
-          {/* Menu Sections */}
           {renderTable("starters", menu.starters)}
           {renderTable("mainCourse", menu.mainCourse)}
           {renderTable("desserts", menu.desserts)}
         </div>
       </div>
+
+      <ToastContainer position="top-right" autoClose={2000} hideProgressBar />
     </div>
   );
 };
