@@ -1,23 +1,26 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Adminnav from './Adminnav';
+import axios from 'axios';
 
 const Review_Ads = () => {
-  const customerReviews = [
-    { id: 1, customerName: 'Alice', review: 'Great food and quick service!', rating: 5 },
-    { id: 2, customerName: 'Bob', review: 'Could be better. Waiting time was long.', rating: 3 },
-    { id: 3, customerName: 'Charlie', review: 'Absolutely loved the desserts!', rating: 5 },
-    { id: 4, customerName: 'Diana', review: 'Average ambiance but good food.', rating: 4 },
-    { id: 5, customerName: 'Ethan', review: 'Loved the spicy starters!', rating: 4 },
-    { id: 6, customerName: 'Fatima', review: 'Portions were too small.', rating: 2 },
-  ];
+  const [review, setReview] = useState([]);
+  const [ads, setAds] = useState([]);
+  const apiLink = "http://localhost:3001/viewreview";
+  const urlview = "http://localhost:3001/viewads";
 
-  const restaurantAds = [
-    { id: 1, title: '50% Off on Starters!', description: 'Enjoy a flat 50% discount on all starters this weekend.' },
-    { id: 2, title: 'New Menu Launch', description: 'We’ve added exciting new dishes to our main course. Check it out!' },
-    { id: 3, title: 'Free Dessert with Every Meal', description: 'Order a main course and get a free dessert of your choice!' },
-    { id: 4, title: 'Live Music Friday Night', description: 'Join us for a musical evening with delicious food.' },
-    { id: 5, title: 'Unlimited Buffet Offer', description: 'Eat all you want with our new buffet menu, only at ₹499.' },
-  ];
+  useEffect(() => {
+    axios.get(apiLink)
+      .then((response) => {
+        setReview(response.data);
+        console.log("Reviews:", response.data);
+      });
+
+    axios.get(urlview)
+      .then((response) => {
+        setAds(response.data);
+        console.log("Ads:",response.data);
+      });
+  }, []);
 
   const sidebarStyle = {
     width: '250px',
@@ -66,26 +69,51 @@ const Review_Ads = () => {
       {/* Content */}
       <div style={containerStyle}>
         <div style={cardWrapperStyle}>
-          {/* Customer Reviews Card */}
-          <div style={cardStyle}>
+          {/* Customer Reviews */}
+          <div>
             <h4>Customer Reviews</h4>
-            {customerReviews.map((review) => (
-              <div key={review.id} style={{ marginBottom: '10px' }}>
-                <p><strong>{review.customerName}</strong>: {review.review}</p>
-                <p>⭐ {review.rating}/5</p>
-              </div>
-            ))}
+            {review.length > 0 ? (
+              review.map((item, index) => (
+                <div key={index} className="card mb-3" style={cardStyle}>
+                  <img
+                    src={`http://localhost:3001/${item.image}`}
+                    className="card-img-top"
+                    alt="Review"
+                    style={{ height: '200px', objectFit: 'cover' }}
+                  />
+                  <div className="card-body">
+                    <h5 className="card-title">{item.title}</h5>
+                    <p className="card-text"><strong>Hotel:</strong> {item.hotelName}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No reviews available.</p>
+            )}
           </div>
 
           {/* Restaurant Ads Card */}
           <div style={cardStyle}>
             <h4>Restaurant Advertisements</h4>
-            {restaurantAds.map((ad) => (
-              <div key={ad.id} style={{ marginBottom: '10px' }}>
-                <p><strong>{ad.title}</strong></p>
-                <p>{ad.description}</p>
-              </div>
-            ))}
+
+            {ads.length > 0 ? (
+              ads.map((item, index) => (
+                <div key={index} className="card mb-3" style={cardStyle}>
+                  <img
+                    src={`http://localhost:3001/${item.image}`}
+                    className="card-img-top"
+                    alt="Ad"
+                    style={{ height: '200px', objectFit: 'cover' }}
+                  />
+                  <div className="card-body">
+                    <h5 className="card-title">{item.title}</h5>
+                    <p>{item.description}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p>No advertisements available.</p>
+            )}
           </div>
         </div>
       </div>

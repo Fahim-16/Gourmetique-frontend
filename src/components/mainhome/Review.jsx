@@ -1,10 +1,23 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/dist/js/bootstrap.min.js';
 import Nav from './Nav';
+import axios from 'axios';
 
 const Review = () => {
-    const [reviews, setReviews] = useState(["nyc food", "good service", "well maintained", "hello","hi","mrng"]);
+
+     const [review, setReview] = useState([]);
+    const apiLink = "http://localhost:3001/viewreview";
+
+    useEffect(() => {
+        axios.get(apiLink)
+          .then((response) => {
+            setReview(response.data);
+            console.log("Reviews:", response.data);
+          });
+        },[]);
+
+
 
     return (
         <div>
@@ -34,7 +47,7 @@ const Review = () => {
                     }}
                 >
                     {
-                        reviews.map((values, index) => {
+                        review.map((item, index) => {
                             return (
                                 <div key={index} className="card mb-3" 
                                     style={{
@@ -42,10 +55,10 @@ const Review = () => {
                                         marginBottom: "10px"
                                     }}
                                 >
-                                    <img src="..." className="card-img-top" alt="..." />
+                                    <img src={`http://localhost:3001/${item.image}`} className="card-img-top" alt="..." />
                                     <div className="card-body">
-                                        <h5 className="card-title">{values}</h5>
-                                        <p className="card-text">This is a wider card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                                        <h5 className="card-title">{item.title}</h5>
+                                        <p className="card-text"><strong>Hotel:</strong> {item.hotelName}</p>
                                     </div>
                                 </div>
                             )
