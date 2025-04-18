@@ -208,7 +208,7 @@ const Customer_Review = () => {
               ads.map((item, index) => (
                 <div key={index} className="card mb-3" style={cardStyle}>
                   <img
-                    src={`http://localhost:3001/uploads/${item.image}`}
+                    src={`http://localhost:3001/${item.image}`}
                     className="card-img-top"
                     alt="Ad"
                     style={{ height: '200px', objectFit: 'cover' }}
@@ -221,39 +221,7 @@ const Customer_Review = () => {
               ))
             ) : (
               <>
-                <div className="card mb-3" style={cardStyle}>
-                  <img
-                    src="https://source.unsplash.com/800x200/?pizza"
-                    className="card-img-top"
-                    alt="Pizza Promo"
-                  />
-                  <div className="card-body">
-                    <h5 className="card-title">50% Off on All Pizzas!</h5>
-                    <p className="card-text">Limited time offer from Pizza Palace. Order now!</p>
-                  </div>
-                </div>
-                <div className="card mb-3" style={cardStyle}>
-                  <img
-                    src="https://source.unsplash.com/800x200/?burger"
-                    className="card-img-top"
-                    alt="Burger Ad"
-                  />
-                  <div className="card-body">
-                    <h5 className="card-title">Free Fries with Every Burger</h5>
-                    <p className="card-text">Don’t miss out on Burger Bonanza’s crazy deals!</p>
-                  </div>
-                </div>
-                <div className="card mb-3" style={cardStyle}>
-                  <img
-                    src="https://source.unsplash.com/800x200/?dessert"
-                    className="card-img-top"
-                    alt="Dessert Promo"
-                  />
-                  <div className="card-body">
-                    <h5 className="card-title">Sweet Tooth Alert!</h5>
-                    <p className="card-text">Get a free dessert with every meal at Sweet Treats.</p>
-                  </div>
-                </div>
+                
               </>
             )}
           </div>
