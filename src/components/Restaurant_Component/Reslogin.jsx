@@ -19,10 +19,14 @@ const Reslogin = () => {
 
       if (response.data.token) {
         sessionStorage.setItem("restoken", response.data.token);
-        sessionStorage.setItem("restaurantid", response.data.restaurant.id); // Store user details
-        sessionStorage.setItem("restaurantname", response.data.restaurant.restaurantName); // Store user details
+        sessionStorage.setItem("restaurantid", response.data.restaurant.id); 
+        sessionStorage.setItem("restaurantname", response.data.restaurant.restaurantName); 
+        sessionStorage.setItem("restaurantownername", response.data.restaurant.ownerName); 
+        sessionStorage.setItem("restaurantadd", response.data.restaurant.address); 
+        sessionStorage.setItem("restaurantphNo", response.data.restaurant.phone);  
         setError('');
         navigate("/menu");
+        console.log(response.data);
       }
     } catch (err) {
       const errorMessage =

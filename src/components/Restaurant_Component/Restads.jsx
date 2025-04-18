@@ -9,6 +9,7 @@ const Restads = () => {
     image: '',
     title: '',
     description: '',
+    hotelId: ''
   });
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -23,7 +24,7 @@ const Restads = () => {
     if (!hotelId) {
       navigate('/');
     } else {
-      axios.get(urlview)
+      axios.post(urlview, { hotelId })
         .then((res) => setVads(res.data))
         .catch((err) => console.log('Error fetching ads:', err));
     }
@@ -33,11 +34,10 @@ const Restads = () => {
     event.preventDefault();
     const formdata = new FormData();
 
-    Object.keys(inputField).forEach((key) => {
-      if (key !== 'image') {
-        formdata.append(key, inputField[key]);
-      }
-    });
+    // Manually add values
+    formdata.append('title', inputField.title);
+    formdata.append('description', inputField.description);
+    formdata.append('hotelId', hotelId); // ✅ Correctly include hotelId
 
     if (file) {
       formdata.append('image', file);
@@ -51,7 +51,7 @@ const Restads = () => {
       .then((response) => {
         if (response.data.message === 'posted successfully') {
           alert('Posted successfully');
-          setInputField({ image: '', title: '', description: '' });
+          setInputField({ image: '', title: '', description: '', hotelId: '' });
           setFile(null);
           setPreview(null);
           axios.get(urlview)
@@ -128,7 +128,7 @@ const Restads = () => {
       <div style={containerStyle}>
         <div style={cardWrapperStyle}>
 
-          {/* View Ads First */}
+          {/* View Ads */}
           <h4 className="text-center mb-3">Posted Advertisements</h4>
           <div style={cardContainerStyle}>
             {vads.length > 0 ? (
@@ -151,7 +151,7 @@ const Restads = () => {
             )}
           </div>
 
-          {/* Post Ad Form Below */}
+          {/* Post Ad Form */}
           <h3 className="mt-4 text-center">Post New Advertisement</h3>
           <form className="mb-3" onSubmit={readValue}>
             <input

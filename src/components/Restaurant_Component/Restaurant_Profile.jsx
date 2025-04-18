@@ -12,6 +12,13 @@ const Restaurant_Profile = () => {
     desserts: [],
   });
 
+  const [restaurant, setRestaurant] = useState({
+    name: "",
+    ownername: "",
+    address: "",
+    phoneNo: "",
+  });
+
   const hotelId = sessionStorage.getItem("restaurantid");
   const navigate = useNavigate();
 
@@ -19,6 +26,12 @@ const Restaurant_Profile = () => {
     if (!hotelId) {
       navigate("/");
     } else {
+      const name = sessionStorage.getItem("restaurantname");
+      const ownername = sessionStorage.getItem("restaurantownername");
+      const address = sessionStorage.getItem("restaurantadd");
+      const phoneNo = sessionStorage.getItem("restaurantphNo");
+
+      setRestaurant({ name, ownername, address, phoneNo });
       fetchMenuItems();
     }
   }, [hotelId, navigate]);
@@ -36,7 +49,6 @@ const Restaurant_Profile = () => {
         name: item.item,
         price: item.price,
       }));
-      console.log(starters);
 
       const mainCourse = mainRes.data.map((item) => ({
         id: item._id,
@@ -57,25 +69,49 @@ const Restaurant_Profile = () => {
     }
   };
 
-  const handleUpdate = (category, itemId) => {
+  const handleUpdate = async (category, itemId) => {
     const item = menu[category].find((i) => i.id === itemId);
-    toast.success(`Updated: ${item.name}`);
-    // Here you can call API to persist changes if needed
+    try {
+      const response = await axios.post("http://localhost:3001/updateMenuItem", {
+        itemId,
+        category,
+        name: item.name,
+        price: item.price,
+      });
+
+      if (response.status === 200) {
+        toast.success(`Updated: ${item.name}`);
+      }
+    } catch (error) {
+      toast.error("Failed to update item.");
+    }
   };
 
-  const handleDelete = (category, itemId) => {
+  const handleDelete = async (category, itemId) => {
     const itemToDelete = menu[category].find((item) => item.id === itemId);
     const confirmDelete = window.confirm(`Delete ${itemToDelete.name}?`);
 
     if (!confirmDelete) return;
 
-    const updatedMenu = { ...menu };
-    updatedMenu[category] = updatedMenu[category].filter(
-      (item) => item.id !== itemId
-    );
-    setMenu(updatedMenu);
+    try {
+      const response = await axios.post("http://localhost:3001/deleteMenuItem", {
+        itemId,
+        category,
+      });
 
-    toast.warn(`Deleted: ${itemToDelete.name}`);
+      if (response.status === 200) {
+        // Remove the deleted item from the menu state
+        const updatedMenu = { ...menu };
+        updatedMenu[category] = updatedMenu[category].filter(
+          (item) => item.id !== itemId
+        );
+        setMenu(updatedMenu);
+
+        toast.success(response.data.message); // Toast success message
+      }
+    } catch (error) {
+      toast.error("Failed to delete item.");
+    }
   };
 
   const renderTable = (category, items) => (
@@ -83,7 +119,11 @@ const Restaurant_Profile = () => {
       <h2 style={{ textTransform: "capitalize", marginTop: "20px" }}>
         {category}
       </h2>
-      <table border={2} cellPadding={10} style={{ width: "100%", marginBottom: "30px" }}>
+      <table
+        border={2}
+        cellPadding={10}
+        style={{ width: "100%", marginBottom: "30px" }}
+      >
         <thead style={{ backgroundColor: "#f0f0f0" }}>
           <tr>
             <th>SI</th>
@@ -182,6 +222,7 @@ const Restaurant_Profile = () => {
     borderRadius: "8px",
     overflowY: "auto",
     boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+    textAlign: "center", // Center the profile text
   };
 
   return (
@@ -194,10 +235,22 @@ const Restaurant_Profile = () => {
         <div style={cardStyle}>
           <div className="card mb-3">
             <div className="card-header">Restaurant Profile</div>
-            <div className="card-body">
-              <blockquote className="blockquote mb-0">
-                <p>Details of the restaurant, address, description, etc.</p>
-              </blockquote>
+            <div
+              className="card-body"
+              style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+            >
+              <div>
+                <h4>{restaurant.name}</h4>
+                <p>
+                  <strong>Owner :</strong> {restaurant.ownername}
+                </p>
+                <p>
+                  <strong>Address :</strong> {restaurant.address}
+                </p>
+                <p>
+                  <strong>Phone No. :</strong> {restaurant.phoneNo}
+                </p>
+              </div>
             </div>
           </div>
 

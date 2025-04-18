@@ -7,69 +7,76 @@ const Restauranthome = () => {
   const [orders, setOrders] = useState([]);
   const [acceptedOrders, setAcceptedOrders] = useState([]);
 
-  const hotelId = sessionStorage.getItem("restaurantid"); // Replace with actual hotelId
+  const hotelId = sessionStorage.getItem("restaurantid");
   const navigate = useNavigate();
 
-  // Helper function to convert 24-hour time to 12-hour format with AM/PM
   const convertTo24HourWithAMPM = (time) => {
     const [hour, minute] = time.split(':');
     const hourInt = parseInt(hour, 10);
     const suffix = hourInt >= 12 ? 'PM' : 'AM';
-    const hour12 = hourInt % 12 || 12; // Convert 24-hour format to 12-hour format
+    const hour12 = hourInt % 12 || 12;
     return `${hour12}:${minute} ${suffix}`;
   };
 
   useEffect(() => {
     if (!hotelId) {
-      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+      navigate('/');
+      return;
     }
+
     const fetchOrders = async () => {
       try {
-        // Fetch accepted orders first
+        // Fetch accepted orders
         const acceptedOrdersResponse = await axios.post('http://localhost:3001/getAcceptedOrders', { hotelId });
-
         const acceptedOrdersList = acceptedOrdersResponse.data || [];
 
-        // Get list of accepted order IDs
         const acceptedOrderIds = acceptedOrdersList.map(order => order.orderId);
 
-        setAcceptedOrders(acceptedOrdersList.map(order => ({
-          id: order.orderId,
-          name: order.customerName,
-          date: `${new Date(order.orderDate).toLocaleDateString('en-GB')} - ${convertTo24HourWithAMPM(order.timeSlot)}`,
-          total: `Rs.${order.grandTotal}`,
-          items: order.items,
-        })));
+        const formattedAcceptedOrders = acceptedOrdersList.map(order => {
+          const date = new Date(order.orderDate);
+          const formattedDate = date.toLocaleDateString('en-GB');
+          const formattedTime = convertTo24HourWithAMPM(order.timeSlot);
+
+          return {
+            id: order.orderId,
+            name: order.customerName,
+            date: `${formattedDate} - ${formattedTime}`,
+            total: `Rs.${order.grandTotal}`,
+            items: order.items.map(item => ({
+              name: item.name,
+              quantity: item.count
+            }))
+          };
+        });
+
+        setAcceptedOrders(formattedAcceptedOrders);
 
         // Fetch all orders
         const response = await axios.post('http://localhost:3001/vieworders', { hotelId });
-        if (response.data && response.data.orders) {
-          const sanitizedOrders = response.data.orders
-            .filter(order => !acceptedOrderIds.includes(order._id)) // ← filter out accepted
-            .map((order, index) => {
-              const orderDate = new Date(order.orderDate);
-              const day = String(orderDate.getDate()).padStart(2, '0');
-              const month = String(orderDate.getMonth() + 1).padStart(2, '0');
-              const year = orderDate.getFullYear();
-              const formattedDate = `${day}/${month}/${year}`;
-              const formattedTime = convertTo24HourWithAMPM(order.timeSlot);
-              const formattedDateTime = `${formattedDate} - ${formattedTime}`;
+        const allOrders = response.data?.orders || [];
 
-              return {
-                id: order._id || index + 1,
-                name: order.customerName,
-                date: formattedDateTime,
-                total: `Rs.${order.grandTotal}`,
-                items: order.items.map(item => ({
-                  name: item.name,
-                  quantity: item.count,
-                })),
-                timeSlot: order.timeSlot,
-              };
-            });
+        const filteredNewOrders = allOrders
+          .filter(order => !acceptedOrderIds.includes(order._id))
+          .map(order => {
+            const date = new Date(order.orderDate);
+            const formattedDate = date.toLocaleDateString('en-GB');
+            const formattedTime = convertTo24HourWithAMPM(order.timeSlot);
 
-          setOrders(sanitizedOrders);
-        }
+            return {
+              id: order._id,
+              name: order.customerName,
+              date: `${formattedDate} - ${formattedTime}`,
+              total: `Rs.${order.grandTotal}`,
+              items: order.items.map(item => ({
+                name: item.name,
+                quantity: item.count
+              })),
+              timeSlot: order.timeSlot
+            };
+          });
+
+        setOrders(filteredNewOrders);
+
       } catch (error) {
         console.error('Failed to fetch orders:', error);
       }
@@ -77,7 +84,6 @@ const Restauranthome = () => {
 
     fetchOrders();
   }, [hotelId, navigate]);
-
 
   const handleAccept = async (orderId) => {
     const acceptedOrder = orders.find((order) => order.id === orderId);
@@ -91,18 +97,19 @@ const Restauranthome = () => {
           customerName: acceptedOrder.name,
           orderDate: acceptedOrder.date.split(' - ')[0],
           grandTotal: acceptedOrder.total.replace('Rs.', ''),
-          items: acceptedOrder.items,
-          hotelId: hotelId,                  // <-- Make sure this is included
-          timeSlot: acceptedOrder.timeSlot  // <-- Include this too
+          items: acceptedOrder.items.map(item => ({
+            name: item.name,
+            count: item.quantity,
+          })),
+          hotelId: hotelId,
+          timeSlot: acceptedOrder.timeSlot,
         });
-
 
       } catch (error) {
         console.error('Failed to save accepted order:', error);
       }
     }
   };
-
 
   const sidebarStyle = {
     width: "250px",
@@ -152,7 +159,7 @@ const Restauranthome = () => {
 
       <div style={containerStyle}>
         <div style={contentStyle}>
-          <h2>New Orders</h2>
+          <h3 style={{ marginTop: "40px" }}>New Orders</h3>
           <div style={cardContainerStyle}>
             {orders.length > 0 ? (
               orders.map((order) => (
@@ -176,30 +183,34 @@ const Restauranthome = () => {
                 </div>
               ))
             ) : (
-              <p>No new orders</p>
+              <div style={{
+                width: "100%",
+                textAlign: "center",
+                padding: "40px",
+                fontSize: "18px"
+              }}>
+                No new orders
+              </div>
             )}
           </div>
           <h3 style={{ marginTop: "40px" }}>Accepted Orders</h3>
-          {/* Accepted Orders */}
           {acceptedOrders.length > 0 ? (
-            <>
-              <div style={cardContainerStyle}>
-                {acceptedOrders.map((order) => (
-                  <div key={order.id} style={cardStyle}>
-                    <h4>Order Id: {order.id}</h4>
-                    <p><strong>Customer:</strong> {order.name}</p>
-                    <p><strong>Date:</strong> {order.date}</p>
-                    <p><strong>Total:</strong> {order.total}</p>
-                    <p><strong>Items:</strong></p>
-                    <ul>
-                      {order.items.map((item, index) => (
-                        <li key={index}>{item.name} x {item.quantity}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </>
+            <div style={cardContainerStyle}>
+              {acceptedOrders.map((order) => (
+                <div key={order.id} style={cardStyle}>
+                  <h4>Order Id: {order.id}</h4>
+                  <p><strong>Customer:</strong> {order.name}</p>
+                  <p><strong>Date:</strong> {order.date}</p>
+                  <p><strong>Total:</strong> {order.total}</p>
+                  <p><strong>Items:</strong></p>
+                  <ul>
+                    {order.items.map((item, index) => (
+                      <li key={index}>{item.name} x {item.quantity}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           ) : (
             <p>No accepted orders</p>
           )}

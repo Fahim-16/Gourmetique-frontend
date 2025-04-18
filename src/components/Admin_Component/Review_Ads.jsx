@@ -7,7 +7,7 @@ const Review_Ads = () => {
   const [review, setReview] = useState([]);
   const [ads, setAds] = useState([]);
   const apiLink = "http://localhost:3001/viewreview";
-  const urlview = "http://localhost:3001/viewads";
+  const urlview = "http://localhost:3001/viewadmincusads";
   const admtoken = sessionStorage.getItem("adtoken");
   const navigate = useNavigate();
 
@@ -114,6 +114,7 @@ const Review_Ads = () => {
                   <div className="card-body">
                     <h5 className="card-title">{item.title}</h5>
                     <p>{item.description}</p>
+                    <p>Hotel : {item.restaurantName}</p>
                   </div>
                 </div>
               ))

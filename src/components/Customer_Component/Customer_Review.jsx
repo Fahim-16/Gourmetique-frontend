@@ -19,7 +19,7 @@ const Customer_Review = () => {
 
   const apiLinkdisplay = 'http://localhost:3001/viewreview';
   const apiLink = 'http://localhost:3001/cusreview';
-  const adsApiLink = 'http://localhost:3001/viewads';
+  const adsApiLink = 'http://localhost:3001/viewadmincusads';
   const apiUrlcus = 'http://localhost:3001/viewrestaurant';
 
   useEffect(() => {
@@ -216,6 +216,7 @@ const Customer_Review = () => {
                   <div className="card-body">
                     <h5 className="card-title">{item.title}</h5>
                     <p className="card-text">{item.description}</p>
+                    <p className="card-text">Hotel : {item.restaurantName}</p>
                   </div>
                 </div>
               ))
