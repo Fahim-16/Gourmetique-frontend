@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import Adminnav from './Adminnav';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Review_Ads = () => {
   const [review, setReview] = useState([]);
   const [ads, setAds] = useState([]);
   const apiLink = "http://localhost:3001/viewreview";
   const urlview = "http://localhost:3001/viewads";
+  const admtoken = sessionStorage.getItem("adtoken");
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!admtoken) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
     axios.get(apiLink)
       .then((response) => {
         setReview(response.data);
@@ -18,9 +24,9 @@ const Review_Ads = () => {
     axios.get(urlview)
       .then((response) => {
         setAds(response.data);
-        console.log("Ads:",response.data);
+        console.log("Ads:", response.data);
       });
-  }, []);
+  }, [admtoken, navigate]);
 
   const sidebarStyle = {
     width: '250px',

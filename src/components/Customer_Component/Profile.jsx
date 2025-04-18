@@ -73,7 +73,7 @@ const Profile = () => {
         <div style={cardWrapperStyle}>
           <div style={cardContainerStyle}>
             <div className="card mb-3">
-              <div className="card-header"><strong>{customerName}</strong></div>
+              <div className="card-header"><strong>{customerName ? customerName.toUpperCase() : ''}</strong></div>
               <div className="card-body">
                 <blockquote className="blockquote mb-0">
                   <p>Username : {customerUserName}</p>

@@ -1,21 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import Adminnav from './Adminnav';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Adminres = () => {
   const [restaurants, setRestaurants] = useState([]);
 
   const apiUrl = "http://localhost:3001/viewrestaurant";
   const apiUrl1 = "http://localhost:3001/delres";
+  const admtoken = sessionStorage.getItem("adtoken");
+  const navigate = useNavigate();
 
   useEffect(() => {
+    if (!admtoken) {
+      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+    }
     axios
       .get(apiUrl)
       .then((response) => {
         setRestaurants(response.data);
       })
       .catch((error) => console.error("Error fetching restaurants:", error));
-  }, []);
+  }, [admtoken, navigate]);
 
   const handleDelete = async (id) => {
     try {
