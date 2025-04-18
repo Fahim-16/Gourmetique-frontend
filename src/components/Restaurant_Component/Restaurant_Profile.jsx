@@ -36,6 +36,7 @@ const Restaurant_Profile = () => {
         name: item.item,
         price: item.price,
       }));
+      console.log(starters);
 
       const mainCourse = mainRes.data.map((item) => ({
         id: item._id,

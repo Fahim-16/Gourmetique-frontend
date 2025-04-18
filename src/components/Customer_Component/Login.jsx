@@ -21,6 +21,11 @@ const Login = () => {
         sessionStorage.setItem('custoken', response.data.token);
         sessionStorage.setItem('customerid', response.data.customer.id);
         sessionStorage.setItem('customername', response.data.customer.name);
+        sessionStorage.setItem('customerusername', response.data.customer.username);
+        sessionStorage.setItem('customeraddress', response.data.customer.address);
+        sessionStorage.setItem('customeraddress', response.data.customer.mobileno);
+        sessionStorage.setItem('customeremail', response.data.customer.email);
+        sessionStorage.setItem('customergen', response.data.customer.gender);
         setError('');
         navigate('/hotellist');
       }

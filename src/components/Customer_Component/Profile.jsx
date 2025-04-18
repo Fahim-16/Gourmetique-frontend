@@ -5,6 +5,12 @@ import { useNavigate } from "react-router-dom";
 const Profile = () => {
   const navigate = useNavigate(); // For navigation
   const customerId = sessionStorage.getItem("customerid");
+  const customerName = sessionStorage.getItem("customername");
+  const customerUserName = sessionStorage.getItem("customerusername");
+  const customerAdd = sessionStorage.getItem("customeraddress");
+  const customerPhNo = sessionStorage.getItem("customerphno");
+  const customerEmail = sessionStorage.getItem("customeremail");
+  const customerGen = sessionStorage.getItem("customergen");
 
   useEffect(() => {
     if (!customerId) {
@@ -38,7 +44,7 @@ const Profile = () => {
 
   const cardWrapperStyle = {
     width: "800px",
-    height: "500px",
+    height: "800px",
     backgroundColor: "white",
     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
     borderRadius: "10px",
@@ -67,14 +73,14 @@ const Profile = () => {
         <div style={cardWrapperStyle}>
           <div style={cardContainerStyle}>
             <div className="card mb-3">
-              <div className="card-header">Quote</div>
+              <div className="card-header"><strong>{customerName}</strong></div>
               <div className="card-body">
                 <blockquote className="blockquote mb-0">
-                  <p>A well-known quote, contained in a blockquote element.</p>
-                  <footer className="blockquote-footer">
-                    Someone famous in{" "}
-                    <cite title="Source Title">Source Title</cite>
-                  </footer>
+                  <p>Username : {customerUserName}</p>
+                  <p>Gender : {customerGen}</p>
+                  <p>Address : {customerAdd}</p>
+                  <p>Phone No. : {customerPhNo}</p>
+                  <p>Email : {customerEmail}</p>
                 </blockquote>
               </div>
             </div>
