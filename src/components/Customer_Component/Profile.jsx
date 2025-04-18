@@ -1,30 +1,33 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Customer_Nav from "./Customer_Nav";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Profile = () => {
-  const navigate = useNavigate(); // For navigation
+  const navigate = useNavigate();
   const customerId = sessionStorage.getItem("customerid");
   const customerName = sessionStorage.getItem("customername");
   const customerUserName = sessionStorage.getItem("customerusername");
   const customerAdd = sessionStorage.getItem("customeraddress");
-  const customerPhNo = sessionStorage.getItem("customerphno");
+  const customerPhNo = sessionStorage.getItem("customerpho");
   const customerEmail = sessionStorage.getItem("customeremail");
   const customerGen = sessionStorage.getItem("customergen");
 
+  const [order, setOrder] = useState([]);
+
+  const api = "http://localhost:3001/getUserOrders";
+
   useEffect(() => {
     if (!customerId) {
-      navigate('/'); // Navigate to login if restaurantid is not in sessionStorage
+      navigate('/');
+    } else {
+      axios.get(api)
+        .then((response) => {
+          setOrder(response.data);
+        })
+        .catch((error) => console.log('Error fetching orders:', error));
     }
   }, [customerId, navigate]);
-  // Dummy order data for demonstration
-  const orders = [
-    { id: 1, name: "John Doe", date: "2025-04-06", total: "Rs.500" },
-    { id: 2, name: "Jane Smith", date: "2025-04-05", total: "Rs.750" },
-    { id: 3, name: "Bob Johnson", date: "2025-04-04", total: "Rs.300" },
-    { id: 4, name: "Alice Brown", date: "2025-04-03", total: "Rs.620" },
-    // add more rows as needed
-  ];
 
   const sidebarStyle = {
     width: "250px",
@@ -44,7 +47,7 @@ const Profile = () => {
 
   const cardWrapperStyle = {
     width: "800px",
-    height: "800px",
+    height: "700px",
     backgroundColor: "white",
     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
     borderRadius: "10px",
@@ -63,12 +66,10 @@ const Profile = () => {
 
   return (
     <div style={{ display: "flex" }}>
-      {/* Sidebar */}
       <div style={sidebarStyle}>
         <Customer_Nav />
       </div>
 
-      {/* Main Content */}
       <div style={containerStyle}>
         <div style={cardWrapperStyle}>
           <div style={cardContainerStyle}>
@@ -79,7 +80,7 @@ const Profile = () => {
                   <p>Username : {customerUserName}</p>
                   <p>Gender : {customerGen}</p>
                   <p>Address : {customerAdd}</p>
-                  <p>Phone No. : {customerPhNo}</p>
+                  <p> Phone Number : {customerPhNo}</p>
                   <p>Email : {customerEmail}</p>
                 </blockquote>
               </div>
@@ -97,14 +98,20 @@ const Profile = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => (
-                    <tr key={order.id}>
-                      <td>{order.id}</td>
-                      <td>{order.name}</td>
-                      <td>{order.date}</td>
-                      <td>{order.total}</td>
+                  {order.length === 0 ? (
+                    <tr>
+                      <td colSpan={4}>No orders found.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    order.map((ord) => (
+                      <tr key={ord.id}>
+                        <td>{ord.id}</td>
+                        <td>{ord.name}</td>
+                        <td>{ord.date}</td>
+                        <td>{ord.total}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
