@@ -21,9 +21,10 @@ const Profile = () => {
     if (!customerId) {
       navigate('/');
     } else {
-      axios.get(api)
+      axios.post(api, { customerId })
         .then((response) => {
           setOrder(response.data);
+          console.log(response.data);
         })
         .catch((error) => console.log('Error fetching orders:', error));
     }
@@ -46,7 +47,7 @@ const Profile = () => {
   };
 
   const cardWrapperStyle = {
-    width: "800px",
+    width: "1200px",
     height: "700px",
     backgroundColor: "white",
     boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
@@ -80,7 +81,7 @@ const Profile = () => {
                   <p>Username : {customerUserName}</p>
                   <p>Gender : {customerGen}</p>
                   <p>Address : {customerAdd}</p>
-                  <p> Phone Number : {customerPhNo}</p>
+                  <p>Phone Number : {customerPhNo}</p>
                   <p>Email : {customerEmail}</p>
                 </blockquote>
               </div>
@@ -92,23 +93,35 @@ const Profile = () => {
                 <thead>
                   <tr>
                     <th>Order ID</th>
-                    <th>Customer Name</th>
+                    <th>Hotel Name</th>
                     <th>Order Date</th>
-                    <th>Order Total</th>
+                    <th>Time Slot</th>
+                    <th>Grand Total</th>
+                    <th>No. of Customers</th>
+                    <th>Items</th>
                   </tr>
                 </thead>
                 <tbody>
                   {order.length === 0 ? (
                     <tr>
-                      <td colSpan={4}>No orders found.</td>
+                      <td colSpan={6}>No orders found.</td>
                     </tr>
                   ) : (
                     order.map((ord) => (
-                      <tr key={ord.id}>
-                        <td>{ord.id}</td>
-                        <td>{ord.name}</td>
-                        <td>{ord.date}</td>
-                        <td>{ord.total}</td>
+                      <tr key={ord._id}>
+                        <td>{ord._id}</td>
+                        <td>{ord.restaurantName}</td>
+                        <td>{new Date(ord.orderDate).toLocaleDateString('en-GB')}</td>
+                        <td>{ord.timeSlot}</td>
+                        <td>₹{ord.grandTotal}</td>
+                        <td>{ord.numberOfCustomers}</td>
+                        <td>
+                          {ord.items.map((item, idx) => (
+                            <div key={idx}>
+                              {item.name} × {item.count} ({item.category})
+                            </div>
+                          ))}
+                        </td>
                       </tr>
                     ))
                   )}
