@@ -1,9 +1,9 @@
 import React from 'react'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap/dist/js/bootstrap.min.js';
-import img from '../images/LAND.png'
-import img1 from '../images/cuslogin.png'
-import img2 from '../images/cusreg.png'
+import img from '../images/one.png'
+import img1 from '../images/two.png'
+import img2 from '../images/three.png'
 
 
 
@@ -19,23 +19,13 @@ const Carousel1 = () => {
   <div class="carousel-inner">
     <div class="carousel-item active">
       <img src={img} class="d-block w-100" alt="..."/>
-      <div class="carousel-caption d-none d-md-block">
-        <h5>First slide label</h5>
-        <p>Some representative placeholder content for the first slide.</p>
-      </div>
     </div>
     <div class="carousel-item">
       <img src={img2} class="d-block w-100" alt="..."/>
-      <div class="carousel-caption d-none d-md-block">
-        <h5>Second slide label</h5>
-        <p>Some representative placeholder content for the second slide.</p>
-      </div>
     </div>
     <div class="carousel-item">
       <img src={img1} class="d-block w-100" alt="..."/>
       <div class="carousel-caption d-none d-md-block">
-        <h5>Third slide label</h5>
-        <p>Some representative placeholder content for the third slide.</p>
       </div>
     </div>
   </div>
